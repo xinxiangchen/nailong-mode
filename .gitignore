@@ -1,0 +1,31 @@
+server.log
+server-error.log
+server.pid
+.pkg/
+node_modules/
+__pycache__/
+tools/node_modules/
+screenshots/*.tmp
+
+# Local configuration, credentials, editor and OS files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.pid
+*.pyc
+
+# Original reference duplicates and development captures (kept locally)
+/奶龙素材/
+/screenshots/*
+!/screenshots/01-home.png
+!/screenshots/06-mobile.png
+!/screenshots/refined-game-thinking.png
+!/screenshots/refined-game-belly.png
+!/screenshots/refined-game-head.png

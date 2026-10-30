@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFF6DE">
+  <title>奶龙模仿挑战 · Nailong Pose Lab</title>
+  <meta name="description" content="用摄像头和 MediaPipe 实时模仿奶龙的三种表情和身体姿势，手部动作会带动奶龙的手。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23FFD43B' stroke='%233B2412' stroke-width='7'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle'%3E%E9%BE%99%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <span class="blob blob-a"></span>
+    <span class="blob blob-b"></span>
+    <span class="blob blob-c"></span>
+    <span class="spark spark-a">✦</span>
+    <span class="spark spark-b">✧</span>
+    <span class="spark spark-c">✦</span>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="奶龙模仿挑战首页">
+      <span class="brand-mark">龙</span>
+      <span class="brand-text">
+        <strong>奶龙模仿挑战</strong>
+        <small>NAILONG POSE LAB</small>
+      </span>
+    </a>
+    <div class="top-actions">
+      <button class="icon-btn" id="soundBtn" type="button" aria-label="打开声音" aria-pressed="true">🔊</button>
+      <button class="pill-btn" id="helpBtn" type="button">玩法</button>
+    </div>
+  </header>
+
+  <main class="game" id="game">
+    <section class="panel panel-target" aria-label="挑战目标">
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="eyebrow">TARGET</span>
+          <h2 id="targetTitle">奶龙捧腹</h2>
+        </div>
+        <span class="badge badge-warm">模仿它！</span>
+      </div>
+
+      <div class="canvas-wrap canvas-target target-photo">
+        <img id="targetImage" src="./assets/targets/belly.webp" alt="奶龙捧腹目标图">
+        <span class="sticker" id="targetSticker">捧肚 · 张嘴 · 眯眼</span>
+      </div>
+      <p class="panel-note" id="targetNote">双手捧住肚子，张大嘴、眯起眼睛，笑到弯下腰。</p>
+      <div class="target-tips" id="targetTips" aria-label="动作要点"></div>
+    </section>
+
+    <section class="panel panel-live" aria-label="你的实时奶龙">
+      <div class="panel-head">
+        <div class="panel-title">
+          <span class="eyebrow">YOU</span>
+          <h2>你的奶龙</h2>
+        </div>
+        <span class="status-chip is-idle" id="statusChip"><i></i><span id="statusText">等待开始</span></span>
+      </div>
+      <div class="canvas-wrap canvas-live">
+        <canvas id="avatarCanvas" width="640" height="640" aria-label="实时模仿你的奶龙"></canvas>
+        <canvas id="avatar3dCanvas" class="avatar-3d" width="640" height="640" hidden aria-label="实时模仿你的 3D 奶龙"></canvas>
+        <div class="countdown" id="countdown" hidden aria-live="polite">3</div>
+        <div class="cam-pip" id="camPip" hidden>
+          <video id="video" playsinline muted aria-label="摄像头实时画面"></video>
+          <canvas id="camOverlay" aria-hidden="true"></canvas>
+          <span class="cam-label">实时</span>
+        </div>
+        <button class="skeleton-toggle" id="skeletonBtn" type="button" aria-pressed="false" hidden>显示骨架</button>
+        <div class="perfect-flash" id="perfectFlash" hidden>完美模仿！</div>
+      </div>
+      <div class="feedback" id="feedback" aria-live="polite">
+        <span class="feedback-icon">💬</span>
+        <span id="feedbackText">点击开始，先对着镜头站好～</span>
+      </div>
+    </section>
+
+    <aside class="panel panel-score" aria-label="实时得分">
+      <div class="score-top">
+        <span class="eyebrow">模仿值 / MATCH METER</span>
+        <div class="score-dial">
+          <svg viewBox="0 0 160 160" class="dial" aria-hidden="true">
+            <circle class="dial-track" cx="80" cy="80" r="66" pathLength="100"></circle>
+            <circle class="dial-fill is-low" id="scoreRing" cx="80" cy="80" r="66" pathLength="100"></circle>
+          </svg>
+          <div class="dial-num"><strong id="scoreValue">--</strong><span>/100</span></div>
+        </div>
+        <div class="grade-chip" id="gradeChip">等待挑战</div>
+      </div>
+
+      <div class="subscores">
+        <div class="subscore">
+          <div class="subscore-head"><span>表情</span><b id="exprValue">--</b></div>
+          <div class="bar"><i id="exprBar"></i></div>
+        </div>
+        <div class="subscore">
+          <div class="subscore-head"><span>肢体</span><b id="poseValue">--</b></div>
+          <div class="bar"><i id="poseBar"></i></div>
+        </div>
+        <div class="subscore">
+          <div class="subscore-head"><span>歪头</span><b id="headValue">--</b></div>
+          <div class="bar"><i id="headBar"></i></div>
+        </div>
+      </div>
+
+      <div class="round-info">
+        <div class="timer-box" id="timerBox">
+          <span class="eyebrow" id="timerLabel">剩余</span>
+          <strong id="timer">00:30</strong>
+        </div>
+        <div class="perfect-box">
+          <span class="eyebrow">完美模仿</span>
+          <div class="hold-bar"><i id="perfectFill"></i></div>
+          <span id="perfectText">保持 90 分 2 秒</span>
+        </div>
+      </div>
+
+      <div class="score-actions">
+        <button class="btn btn-primary" id="startBtn" type="button" disabled>开始 30 秒挑战</button>
+        <button class="btn btn-ghost" id="practiceBtn" type="button" disabled>练习模式</button>
+        <button class="btn btn-primary" id="stopBtn" type="button" hidden>结束本轮</button>
+      </div>
+
+      <div class="best-row">
+        <span>🏆 最佳纪录</span>
+        <strong id="bestValue">0</strong>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    <span>MediaPipe · 表情 / 姿态 / 手部 21 点</span>
+    <span class="foot-dot">·</span>
+    <span>全部识别在本地完成</span>
+    <span class="foot-dot">·</span>
+    <span>摄像头画面不会上传</span>
+    <span class="foot-dot">·</span>
+    <span>粉丝自制 · 非官方</span>
+  </footer>
+
+  <!-- 首屏 / 玩法说明 -->
+  <div class="overlay" id="introOverlay">
+    <div class="modal intro-modal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+      <span class="modal-kicker">NAILONG POSE CHALLENGE</span>
+      <h1 id="introTitle">学奶龙<br><em>摆三种状态</em></h1>
+      <p class="lead">三张奶龙表情，三种挑战：托腮思考、捧腹大笑、抱头仰天。30 秒内模仿它的表情和身体——你举起的手会实时带动奶龙的小短手（手部不计分）。</p>
+
+      <div class="challenge-tabs intro-challenge-tabs" id="challengeTabs" role="group" aria-label="选择挑战">
+        <button class="challenge-tab" type="button" data-challenge="thinking" aria-pressed="false">
+          <img src="./assets/targets/thinking.webp" alt="">
+          <span>奶龙思考</span>
+        </button>
+        <button class="challenge-tab" type="button" data-challenge="belly" aria-pressed="true">
+          <img src="./assets/targets/belly.webp" alt="">
+          <span>奶龙捧腹</span>
+        </button>
+        <button class="challenge-tab" type="button" data-challenge="head" aria-pressed="false">
+          <img src="./assets/targets/head.webp" alt="">
+          <span>奶龙仰天</span>
+        </button>
+      </div>
+      <p class="intro-challenge-note" id="introChallengeNote">当前：奶龙捧腹 · 捧肚 · 张嘴 · 眯眼</p>
+
+      <div class="how-grid">
+        <div class="how-item"><span class="how-icon">🖼️</span><b>选一张</b><small>三个挑战任选</small></div>
+        <div class="how-item"><span class="how-icon">😮</span><b>对表情</b><small>嘴、眼睛、歪头</small></div>
+        <div class="how-item"><span class="how-icon">🙌</span><b>摆动作</b><small>手肘和身体跟住</small></div>
+        <div class="how-item"><span class="how-icon">🖐️</span><b>让手跟着你</b><small>手部只驱动形象</small></div>
+      </div>
+
+      <div class="intro-status is-loading" id="introStatus" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span><span id="introStatusText">正在加载表情、肢体与手部模型…</span>
+      </div>
+
+      <div class="intro-actions">
+        <button class="btn btn-primary btn-xl" id="introStartBtn" type="button" disabled>开始挑战</button>
+        <button class="btn btn-ghost" id="introPracticeBtn" type="button" disabled>先练一练</button>
+      </div>
+      <button class="demo-link" id="demoBtn" type="button">没有摄像头？看演示 →</button>
+      <button class="text-btn" id="modelRetryBtn" type="button" hidden>重试加载模型</button>
+      <p class="fineprint">需要摄像头权限 · 只在挑战时开启，回首页自动关闭 · 识别全部在本地浏览器完成，画面不会上传。</p>
+    </div>
+  </div>
+
+  <!-- 结算 -->
+  <div class="overlay" id="resultOverlay" hidden>
+    <div class="modal result-modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <span class="modal-kicker" id="resultKicker">30 秒挑战结束</span>
+      <div class="result-grade" id="resultGrade">A</div>
+      <h2 id="resultTitle">模仿学徒</h2>
+      <div class="result-score"><strong id="resultScore">0</strong><span>分</span></div>
+      <div class="stars" id="resultStars" aria-label="星级"></div>
+      <div class="result-bars">
+        <div class="result-bar"><span>表情</span><div class="bar"><i id="resultExprBar"></i></div><b id="resultExprValue">--</b></div>
+        <div class="result-bar"><span>肢体</span><div class="bar"><i id="resultPoseBar"></i></div><b id="resultPoseValue">--</b></div>
+        <div class="result-bar"><span>歪头</span><div class="bar"><i id="resultHeadBar"></i></div><b id="resultHeadValue">--</b></div>
+      </div>
+      <div class="result-badges">
+        <span class="result-badge is-gold" id="perfectBadge" hidden>🏅 完美模仿</span>
+        <span class="result-badge is-mint" id="newRecord" hidden>🎉 新纪录</span>
+      </div>
+      <p class="result-tip" id="resultTip">再靠近一点镜头，效果会更好。</p>
+      <div class="result-actions">
+        <button class="btn btn-primary" id="retryBtn" type="button">再来一次</button>
+        <button class="btn btn-ghost" id="practiceAgainBtn" type="button">练一练</button>
+        <button class="btn btn-ghost" id="homeBtn" type="button">回首页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 玩法 / 设置 -->
+  <div class="overlay" id="helpOverlay" hidden>
+    <div class="modal help-modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <button class="modal-close" id="helpClose" type="button" aria-label="关闭">×</button>
+      <span class="modal-kicker">HOW TO PLAY</span>
+      <h2 id="helpTitle">怎么模仿才能拿高分？</h2>
+      <ol class="help-list">
+        <li><b>选一张目标</b><span>首页三张图：托腮思考、捧腹大笑、抱头仰天。每张图有自己的表情和身体目标。</span></li>
+        <li><b>对表情</b><span>嘴、笑眼、挑眉、歪头都要跟着目标走。思考那张要闭嘴睁眼，笑的两张要张大嘴眯眼。</span></li>
+        <li><b>摆身体和手</b><span>手肘和身体尽量贴近目标；手举起来、手指张开或握拳，奶龙的手会跟着你动（不计分）。</span></li>
+        <li><b>保持住</b><span>分数取本轮峰值；总分保持 90 以上 2 秒，会触发「完美模仿」彩蛋。</span></li>
+      </ol>
+      <div class="help-note">
+        <p><b>计时规则：</b>找不到脸时会自动暂停计时；手出画时奶龙的手会回到默认姿势，不影响分数。</p>
+        <p><b>分数构成：</b>表情 + 肢体 + 歪头，具体权重随挑战变化。</p>
+        <p><b>隐私：</b>视频画面只留在浏览器里，MediaPipe 模型全部在本地加载。</p>
+      </div>
+      <div class="help-actions">
+        <button class="btn btn-primary" id="helpStartBtn" type="button">开始挑战</button>
+        <button class="btn btn-ghost" id="helpCloseBtn" type="button">继续看</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="fxCanvas" aria-hidden="true"></canvas>
+
+  <script src="./js/file-warning.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
