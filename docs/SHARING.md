@@ -2,9 +2,12 @@
 
 [← 返回项目首页](../README.md)
 
-**项目名：奶龙上身 · Nailong Mode**  
-**一句话：笑一个，看看你有几分奶龙。**  
-**作者：[@xinxiangchen](https://github.com/xinxiangchen)**  
+**项目名：奶龙上身 · Nailong Mode**
+
+**一句话：笑一个，看看你有几分奶龙。**
+
+**作者：[@xinxiangchen](https://github.com/xinxiangchen)**
+
 **项目地址：https://github.com/xinxiangchen/nailong-mode**
 
 ## 现成素材
