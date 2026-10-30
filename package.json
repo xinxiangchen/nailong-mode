@@ -1,19 +1,19 @@
 {
-  "name": "nailong-laugh-challenge",
+  "name": "nailong-mode",
   "private": true,
   "type": "module",
-  "description": "奶龙模仿挑战 · MediaPipe 表情、姿态与手部动作模仿小游戏",
+  "description": "奶龙上身 · 笑一个，看看你有几分奶龙。摄像头驱动的 3D 奶龙模仿挑战。",
   "scripts": {
     "test": "node tools/test-metrics.mjs && node tools/test-scoring.mjs && node tools/test-face-tracking.mjs"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xinxiangchen/nailong-pose-lab.git"
+    "url": "https://github.com/xinxiangchen/nailong-mode.git"
   },
-  "homepage": "https://github.com/xinxiangchen/nailong-pose-lab#readme",
+  "homepage": "https://github.com/xinxiangchen/nailong-mode#readme",
   "bugs": {
-    "url": "https://github.com/xinxiangchen/nailong-pose-lab/issues"
+    "url": "https://github.com/xinxiangchen/nailong-mode/issues"
   },
   "engines": {
     "node": ">=20"

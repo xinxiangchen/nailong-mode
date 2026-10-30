@@ -1519,7 +1519,7 @@ function render(now, dt) {
 function buildLiveState(now, dt) {
   const time = now / 1000;
   const idle = idleState(time);
-  const metrics = now - state.lastProcessedAt < 500 ? state.smoothed : null;
+  const metrics = state.demo || now - state.lastProcessedAt < 500 ? state.smoothed : null;
   const hasFace = Boolean(metrics?.hasFace);
   const hasPose = Boolean(metrics?.hasPose);
   const visual = state.visual;
@@ -1989,7 +1989,7 @@ function drawCameraOverlay() {
 /* ============================ HUD ============================ */
 
 function updateHUD(force = false) {
-  const metrics = performance.now() - state.lastProcessedAt < 500 ? state.smoothed : null;
+  const metrics = state.demo || performance.now() - state.lastProcessedAt < 500 ? state.smoothed : null;
   const hasFace = Boolean(metrics?.hasFace);
   const result = state.lastScoreResult;
   const showLive = state.phase === 'playing';

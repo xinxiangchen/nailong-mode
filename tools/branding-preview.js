@@ -1,0 +1,10 @@
+import { createNailong3D } from '../js/nailong3d.js';
+import { getChallenge } from '../js/challenges.js';
+const avatar = createNailong3D(document.querySelector('#avatar'));
+avatar.setView({x:1.85,y:1.55,z:5.2},{x:0,y:1.22,z:0});
+const c = getChallenge('belly');
+const hand={fingers:[.55,.55,.55,.55],thumb:.55,wrist:{flex:0,dev:0,twist:0}};
+const state = {challengeId:'belly',active:true,expr:{mouthOpen:.94,smile:.9,squint:.9,brow:.2},laugh:.6,headTilt:-4,torsoLean:0,arms:{left:{upper:c.target.pose.armR,fore:c.target.pose.foreR,hand},right:{upper:c.target.pose.armL,fore:c.target.pose.foreL,hand}},legs:{left:{hip:5,knee:3},right:{hip:-5,knee:-3}}};
+for(let i=0;i<180;i++) avatar.render(state,1.2,1/60);
+document.body.dataset.ready='true';
+window.__renderBrand=(time=1.2)=>avatar.render(state,time,1/30);
